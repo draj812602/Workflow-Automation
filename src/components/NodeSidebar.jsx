@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { updateNode } from "../redux/workflowSlice";
 
-const NodeSidebar = ({ selectedNode, closeSidebar, onDeleteNode }) => {
+const NodeSidebar = ({ selectedNode, closeSidebar, deleteNode }) => {
   const dispatch = useDispatch();
   const {
     register,
@@ -61,10 +61,10 @@ const NodeSidebar = ({ selectedNode, closeSidebar, onDeleteNode }) => {
         </div>
       </form>
 
-      {/* Delete Button */}
       <button
-        onClick={() => onDeleteNode(selectedNode.id)}
-        className="w-full mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+        type="button"
+        onClick={deleteNode}
+        className="mt-4 w-full px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
       >
         Delete Node
       </button>

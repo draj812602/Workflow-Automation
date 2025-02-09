@@ -11,26 +11,29 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   addNode,
   setEdges,
-  deleteEdge,
   deleteNode,
+  updateNodes,
 } from "../redux/workflowSlice";
 import NodeSidebar from "./NodeSidebar";
-import nodeTypes from "./CustomNodes"; // Import custom node types
+import nodeTypes from "./CustomNodes";
 
 const WorkflowCanvas = () => {
   const dispatch = useDispatch();
   const { nodes, edges } = useSelector((state) => state.workflow);
+
   const [selectedNode, setSelectedNode] = useState(null);
   const [selectedType, setSelectedType] = useState("task");
 
+  // Handle node changes (drag-and-drop)
   const onNodesChange = useCallback(
     (changes) => {
       const updatedNodes = applyNodeChanges(changes, nodes);
-      dispatch({ type: "workflow/updateNodes", payload: updatedNodes });
+      dispatch(updateNodes(updatedNodes));
     },
     [dispatch, nodes]
   );
 
+  // Handle edge changes (add/remove)
   const onEdgesChange = useCallback(
     (changes) => {
       const updatedEdges = applyEdgeChanges(changes, edges);
@@ -39,15 +42,16 @@ const WorkflowCanvas = () => {
     [dispatch, edges]
   );
 
+  // Handle new connections
   const onConnect = useCallback(
-    (connection) => dispatch(setEdges(addEdge(connection, edges))),
+    (connection) => {
+      const newEdges = addEdge(connection, edges);
+      dispatch(setEdges(newEdges));
+    },
     [dispatch, edges]
   );
 
-  const onEdgeClick = (event, edge) => {
-    dispatch(deleteEdge(edge.id));
-  };
-
+  // Add a new node
   const handleAddNode = () => {
     const newNode = {
       id: `${nodes.length + 1}`,
@@ -63,19 +67,24 @@ const WorkflowCanvas = () => {
     dispatch(addNode(newNode));
   };
 
+  // Select a node for editing or deletion
   const onNodeClick = (event, node) => {
     setSelectedNode(node);
   };
 
-  const handleDeleteNode = (nodeId) => {
-    dispatch(deleteNode(nodeId));
-    setSelectedNode(null); // ✅ Close sidebar when node is deleted
+  // Delete the selected node
+  const handleDeleteNode = () => {
+    if (selectedNode) {
+      dispatch(deleteNode(selectedNode.id));
+      setSelectedNode(null); // Close sidebar
+    }
   };
 
   return (
     <div className="relative w-full h-[80vh]">
-      {/* Node Type Selection */}
-      <div className="absolute top-4 left-4 z-10 p-2 flex space-x-2">
+      {/* Toolbar */}
+      <div className="absolute top-4 left-4 z-10 p-2 flex space-x-2 bg-white shadow-md rounded-lg px-4 py-2">
+        {/* Node Type Selection */}
         <select
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
@@ -101,8 +110,7 @@ const WorkflowCanvas = () => {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
-          onEdgeClick={onEdgeClick}
-          onNodeClick={onNodeClick} // ✅ Sidebar opens on node click
+          onNodeClick={onNodeClick}
           nodeTypes={nodeTypes}
           fitView
         >
@@ -116,7 +124,7 @@ const WorkflowCanvas = () => {
         <NodeSidebar
           selectedNode={selectedNode}
           closeSidebar={() => setSelectedNode(null)}
-          onDeleteNode={handleDeleteNode} // ✅ Ensure correct deletion handling
+          deleteNode={handleDeleteNode}
         />
       )}
     </div>

@@ -1,15 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  nodes: [
-    {
-      id: "1",
-      type: "task",
-      data: { label: "Task 1", nodeType: "Task" },
-      position: { x: 250, y: 5 },
-    },
-  ],
+  nodes: [],
   edges: [],
+  history: [], // Stores previous states for Undo
+  future: [], // Stores undone states for Redo
 };
 
 const workflowSlice = createSlice({
@@ -17,34 +12,65 @@ const workflowSlice = createSlice({
   initialState,
   reducers: {
     addNode: (state, action) => {
-      state.nodes.push(action.payload);
+      state.history.push({ nodes: [...state.nodes], edges: [...state.edges] });
+      state.future = [];
+      state.nodes = [...state.nodes, action.payload];
     },
     updateNode: (state, action) => {
       const index = state.nodes.findIndex(
         (node) => node.id === action.payload.id
       );
       if (index !== -1) {
-        state.nodes[index] = {
+        const updatedNodes = [...state.nodes];
+        updatedNodes[index] = {
           ...state.nodes[index],
           data: action.payload.data,
         };
+        state.nodes = updatedNodes;
       }
     },
     updateNodes: (state, action) => {
-      state.nodes = action.payload;
+      state.history.push({ nodes: [...state.nodes], edges: [...state.edges] });
+      state.future = [];
+      state.nodes = [...action.payload];
     },
     deleteNode: (state, action) => {
+      state.history.push({ nodes: [...state.nodes], edges: [...state.edges] });
+      state.future = [];
       const nodeId = action.payload;
       state.nodes = state.nodes.filter((node) => node.id !== nodeId);
       state.edges = state.edges.filter(
         (edge) => edge.source !== nodeId && edge.target !== nodeId
-      ); // Remove related edges
+      );
     },
     setEdges: (state, action) => {
-      state.edges = action.payload;
+      state.history.push({ nodes: [...state.nodes], edges: [...state.edges] });
+      state.future = [];
+      state.edges = [...action.payload];
     },
     deleteEdge: (state, action) => {
+      state.history.push({ nodes: [...state.nodes], edges: [...state.edges] });
+      state.future = [];
       state.edges = state.edges.filter((edge) => edge.id !== action.payload);
+    },
+    undo: (state) => {
+      if (state.history.length > 0) {
+        const lastState = state.history.pop();
+        state.future.push({ nodes: [...state.nodes], edges: [...state.edges] });
+        state.nodes = [...lastState.nodes];
+        state.edges = [...lastState.edges];
+      }
+    },
+    redo: (state) => {
+      if (state.future.length > 0) {
+        const nextState = state.future.pop();
+        state.history.push({
+          nodes: [...state.nodes],
+          edges: [...state.edges],
+        });
+        state.nodes = [...nextState.nodes];
+        state.edges = [...nextState.edges];
+      }
     },
   },
 });
@@ -56,5 +82,8 @@ export const {
   deleteNode,
   setEdges,
   deleteEdge,
+  undo,
+  redo,
 } = workflowSlice.actions;
+
 export default workflowSlice.reducer;
