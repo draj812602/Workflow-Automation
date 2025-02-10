@@ -16,16 +16,6 @@ const TaskForm = ({ onSubmit, defaultValues }) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <label className="block text-sm font-medium">Task Name</label>
-      <input
-        type="text"
-        {...register("taskName", { required: "Task Name is required" })}
-        className="w-full p-2 border border-gray-300 rounded"
-      />
-      {errors.taskName && (
-        <p className="text-red-500 text-sm">{errors.taskName.message}</p>
-      )}
-
       <label className="block text-sm font-medium">Assignee</label>
       <input
         type="text"
