@@ -1,47 +1,36 @@
-import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
-import { updateNode } from "../redux/workflowSlice";
+import React from "react";
+import TaskForm from "./forms/TaskForm";
+import ConditionForm from "./forms/ConditionForm";
+import NotificationForm from "./forms/NotificationForm";
+import useNodeForm from "../hooks/useNodeForm";
 
 const NodeSidebar = ({ selectedNode, closeSidebar, deleteNode }) => {
-  const dispatch = useDispatch();
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm();
-
-  useEffect(() => {
-    if (selectedNode) {
-      reset({ label: selectedNode.data.label });
-    }
-  }, [selectedNode, reset]);
-
-  const onSubmit = (data) => {
-    dispatch(
-      updateNode({
-        id: selectedNode.id,
-        data: { ...selectedNode.data, ...data },
-      })
-    );
-    closeSidebar();
-  };
+  const { register, handleSubmit, onSubmit, errors } = useNodeForm(
+    selectedNode,
+    closeSidebar
+  );
 
   return (
     <div className="fixed top-0 right-0 w-72 h-full bg-white shadow-lg p-4 border-l border-gray-300">
       <h3 className="text-lg font-semibold mb-4">
         Edit {selectedNode.data.nodeType}
       </h3>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <label className="block text-sm font-medium mb-1">Label</label>
-        <input
-          type="text"
-          {...register("label", { required: "Label is required" })}
-          className="w-full border border-gray-300 p-2 rounded focus:ring focus:ring-blue-300"
-        />
-        {errors.label && (
-          <p className="text-red-500 text-sm">{errors.label.message}</p>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {selectedNode.data.nodeType === "task" && (
+          <TaskForm register={register} defaultValues={selectedNode.data} />
+        )}
+        {selectedNode.data.nodeType === "condition" && (
+          <ConditionForm
+            register={register}
+            defaultValues={selectedNode.data}
+          />
+        )}
+        {selectedNode.data.nodeType === "notification" && (
+          <NotificationForm
+            register={register}
+            defaultValues={selectedNode.data}
+          />
         )}
 
         <div className="flex justify-between mt-4">
@@ -59,15 +48,14 @@ const NodeSidebar = ({ selectedNode, closeSidebar, deleteNode }) => {
             Save
           </button>
         </div>
+        <button
+          type="button"
+          onClick={deleteNode}
+          className="w-full px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition mt-4"
+        >
+          Delete Node
+        </button>
       </form>
-
-      <button
-        type="button"
-        onClick={deleteNode}
-        className="mt-4 w-full px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-      >
-        Delete Node
-      </button>
     </div>
   );
 };

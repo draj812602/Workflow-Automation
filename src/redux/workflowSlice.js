@@ -14,45 +14,45 @@ const workflowSlice = createSlice({
     addNode: (state, action) => {
       state.history.push({ nodes: [...state.nodes], edges: [...state.edges] });
       state.future = [];
-      state.nodes = [...state.nodes, action.payload];
+      state.nodes.push(action.payload);
     },
+
     updateNode: (state, action) => {
+      state.history.push({ nodes: [...state.nodes], edges: [...state.edges] });
+      state.future = [];
       const index = state.nodes.findIndex(
         (node) => node.id === action.payload.id
       );
       if (index !== -1) {
-        const updatedNodes = [...state.nodes];
-        updatedNodes[index] = {
+        state.nodes[index] = {
           ...state.nodes[index],
           data: action.payload.data,
         };
-        state.nodes = updatedNodes;
       }
     },
-    updateNodes: (state, action) => {
-      state.history.push({ nodes: [...state.nodes], edges: [...state.edges] });
-      state.future = [];
-      state.nodes = [...action.payload];
-    },
+
     deleteNode: (state, action) => {
+      const nodeId = action.payload;
       state.history.push({ nodes: [...state.nodes], edges: [...state.edges] });
       state.future = [];
-      const nodeId = action.payload;
       state.nodes = state.nodes.filter((node) => node.id !== nodeId);
       state.edges = state.edges.filter(
         (edge) => edge.source !== nodeId && edge.target !== nodeId
       );
     },
+
+    updateNodes: (state, action) => {
+      state.history.push({ nodes: [...state.nodes], edges: [...state.edges] });
+      state.future = [];
+      state.nodes = action.payload;
+    },
+
     setEdges: (state, action) => {
       state.history.push({ nodes: [...state.nodes], edges: [...state.edges] });
       state.future = [];
-      state.edges = [...action.payload];
+      state.edges = action.payload;
     },
-    deleteEdge: (state, action) => {
-      state.history.push({ nodes: [...state.nodes], edges: [...state.edges] });
-      state.future = [];
-      state.edges = state.edges.filter((edge) => edge.id !== action.payload);
-    },
+
     undo: (state) => {
       if (state.history.length > 0) {
         const lastState = state.history.pop();
@@ -61,6 +61,7 @@ const workflowSlice = createSlice({
         state.edges = [...lastState.edges];
       }
     },
+
     redo: (state) => {
       if (state.future.length > 0) {
         const nextState = state.future.pop();
@@ -72,18 +73,25 @@ const workflowSlice = createSlice({
         state.edges = [...nextState.edges];
       }
     },
+
+    importWorkflow: (state, action) => {
+      state.history.push({ nodes: [...state.nodes], edges: [...state.edges] });
+      state.future = [];
+      state.nodes = [...action.payload.nodes];
+      state.edges = [...action.payload.edges];
+    },
   },
 });
 
 export const {
   addNode,
   updateNode,
-  updateNodes,
   deleteNode,
+  updateNodes,
   setEdges,
-  deleteEdge,
   undo,
   redo,
+  importWorkflow,
 } = workflowSlice.actions;
 
 export default workflowSlice.reducer;
