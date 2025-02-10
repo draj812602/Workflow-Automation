@@ -1,7 +1,9 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import ReactFlow, { Controls, Background } from "reactflow";
 import "reactflow/dist/style.css";
 import useWorkflowState from "../hooks/useWorkflowState";
+import { useDispatch } from "react-redux";
+import { exportWorkflow, importWorkflow } from "../redux/workflowSlice";
 import NodeSidebar from "./NodeSidebar";
 import nodeTypes from "./CustomNodes";
 
@@ -16,55 +18,30 @@ const WorkflowCanvas = () => {
     onConnect,
     handleUndo,
     handleRedo,
-    handleImportWorkflow,
     history,
     future,
   } = useWorkflowState();
 
+  const dispatch = useDispatch();
   const [selectedNode, setSelectedNode] = useState(null);
   const [selectedType, setSelectedType] = useState("task");
 
-  // ✅ Ensure onNodeClick properly sets the selected node
-  const onNodeClick = useCallback((event, node) => {
-    setSelectedNode(node);
-  }, []);
+  const onNodeClick = (event, node) => setSelectedNode(node);
 
-  // ✅ Export Workflow as JSON
-  const handleExport = () => {
-    const workflowData = { nodes, edges };
-    const jsonData = JSON.stringify(workflowData, null, 2);
-    const blob = new Blob([jsonData], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "workflow.json";
-    link.click();
-  };
-
-  // ✅ Import Workflow from JSON File
   const handleImport = (event) => {
     const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const workflowData = JSON.parse(e.target.result);
-        if (workflowData.nodes && workflowData.edges) {
-          handleImportWorkflow(workflowData);
-        } else {
-          alert("Invalid workflow file.");
-        }
-      } catch (error) {
-        alert("Error parsing file. Please upload a valid JSON file.");
-      }
-    };
-    reader.readAsText(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const importedData = JSON.parse(e.target.result);
+        dispatch(importWorkflow(importedData));
+      };
+      reader.readAsText(file);
+    }
   };
 
   return (
     <div className="relative w-full h-[80vh]">
-      {/* ✅ Toolbar */}
       <div className="absolute top-4 left-4 z-10 flex space-x-2 p-2 bg-white shadow-md rounded-lg">
         <select
           value={selectedType}
@@ -82,27 +59,40 @@ const WorkflowCanvas = () => {
           Add {selectedType}
         </button>
         <button
-          onClick={handleExport}
+          onClick={handleUndo}
+          disabled={history.length === 0}
+          className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+        >
+          Undo
+        </button>
+        <button
+          onClick={handleRedo}
+          disabled={future.length === 0}
+          className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+        >
+          Redo
+        </button>
+        <button
+          onClick={() => dispatch(exportWorkflow())}
           className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
         >
           Export
         </button>
+        <input
+          type="file"
+          accept=".json"
+          onChange={handleImport}
+          className="hidden"
+          id="import-file"
+        />
         <label
           htmlFor="import-file"
-          className="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer"
+          className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 cursor-pointer"
         >
           Import
         </label>
-        <input
-          id="import-file"
-          type="file"
-          accept="application/json"
-          className="hidden"
-          onChange={handleImport}
-        />
       </div>
 
-      {/* ✅ Workflow Canvas */}
       <div className="w-full h-full">
         <ReactFlow
           nodes={nodes}
@@ -110,7 +100,7 @@ const WorkflowCanvas = () => {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
-          onNodeClick={onNodeClick} // ✅ Ensure this is included
+          onNodeClick={onNodeClick}
           nodeTypes={nodeTypes}
           fitView
         >
@@ -119,15 +109,11 @@ const WorkflowCanvas = () => {
         </ReactFlow>
       </div>
 
-      {/* ✅ Node Sidebar - Opens on Node Click */}
       {selectedNode && (
         <NodeSidebar
           selectedNode={selectedNode}
           closeSidebar={() => setSelectedNode(null)}
-          deleteNode={() => {
-            handleDeleteNode(selectedNode.id);
-            setSelectedNode(null);
-          }}
+          deleteNode={() => handleDeleteNode(selectedNode.id)}
         />
       )}
     </div>

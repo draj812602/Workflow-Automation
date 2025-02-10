@@ -1,13 +1,12 @@
 import { useDispatch, useSelector } from "react-redux";
 import {
   addNode,
-  updateNode,
-  deleteNode,
   updateNodes,
+  deleteNode,
   setEdges,
+  deleteEdge,
   undo,
   redo,
-  importWorkflow,
 } from "../redux/workflowSlice";
 import { applyNodeChanges, applyEdgeChanges, addEdge } from "reactflow";
 
@@ -32,7 +31,9 @@ const useWorkflowState = () => {
     dispatch(addNode(newNode));
   };
 
-  const handleDeleteNode = (nodeId) => dispatch(deleteNode(nodeId));
+  const handleDeleteNode = (nodeId) => {
+    dispatch(deleteNode(nodeId));
+  };
 
   const onEdgesChange = (changes) => {
     const updatedEdges = applyEdgeChanges(changes, edges);
@@ -47,15 +48,9 @@ const useWorkflowState = () => {
   const handleUndo = () => dispatch(undo());
   const handleRedo = () => dispatch(redo());
 
-  const handleImportWorkflow = (workflowData) => {
-    dispatch(importWorkflow(workflowData));
-  };
-
   return {
     nodes,
     edges,
-    history,
-    future,
     onNodesChange,
     handleAddNode,
     handleDeleteNode,
@@ -63,7 +58,8 @@ const useWorkflowState = () => {
     onConnect,
     handleUndo,
     handleRedo,
-    handleImportWorkflow,
+    history,
+    future,
   };
 };
 
