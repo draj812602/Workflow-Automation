@@ -4,49 +4,61 @@ import {
   updateNodes,
   deleteNode,
   setEdges,
-  deleteEdge,
-  undo,
-  redo,
+  exportWorkflow,
+  importWorkflow,
 } from "../redux/workflowSlice";
 import { applyNodeChanges, applyEdgeChanges, addEdge } from "reactflow";
+import { useCallback } from "react";
 
 const useWorkflowState = () => {
   const dispatch = useDispatch();
-  const { nodes, edges, history, future } = useSelector(
-    (state) => state.workflow
+  const { nodes, edges } = useSelector((state) => state.workflow);
+
+  const onNodesChange = useCallback(
+    (changes) => dispatch(updateNodes(applyNodeChanges(changes, nodes))),
+    [dispatch, nodes]
   );
 
-  const onNodesChange = (changes) => {
-    const updatedNodes = applyNodeChanges(changes, nodes);
-    dispatch(updateNodes(updatedNodes));
-  };
+  const handleAddNode = useCallback(
+    (type) => {
+      const newNode = {
+        id: `${nodes.length + 1}`,
+        type,
+        data: { label: `${type} ${nodes.length + 1}`, nodeType: type },
+        position: { x: Math.random() * 400, y: Math.random() * 400 },
+      };
+      dispatch(addNode(newNode));
+    },
+    [dispatch, nodes]
+  );
 
-  const handleAddNode = (type) => {
-    const newNode = {
-      id: `${nodes.length + 1}`,
-      type,
-      data: { label: `${type} ${nodes.length + 1}`, nodeType: type },
-      position: { x: Math.random() * 400, y: Math.random() * 400 },
+  const handleDeleteNode = useCallback(
+    (nodeId) => dispatch(deleteNode(nodeId)),
+    [dispatch]
+  );
+
+  const onEdgesChange = useCallback(
+    (changes) => dispatch(setEdges(applyEdgeChanges(changes, edges))),
+    [dispatch, edges]
+  );
+
+  const onConnect = useCallback(
+    (connection) => dispatch(setEdges(addEdge(connection, edges))),
+    [dispatch, edges]
+  );
+
+  //Export JSON
+  const handleExport = () => dispatch(exportWorkflow());
+
+  // Import JSON
+  const handleImport = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const importedData = JSON.parse(e.target.result);
+      dispatch(importWorkflow(importedData));
     };
-    dispatch(addNode(newNode));
+    reader.readAsText(file);
   };
-
-  const handleDeleteNode = (nodeId) => {
-    dispatch(deleteNode(nodeId));
-  };
-
-  const onEdgesChange = (changes) => {
-    const updatedEdges = applyEdgeChanges(changes, edges);
-    dispatch(setEdges(updatedEdges));
-  };
-
-  const onConnect = (connection) => {
-    const updatedEdges = addEdge(connection, edges);
-    dispatch(setEdges(updatedEdges));
-  };
-
-  const handleUndo = () => dispatch(undo());
-  const handleRedo = () => dispatch(redo());
 
   return {
     nodes,
@@ -56,10 +68,8 @@ const useWorkflowState = () => {
     handleDeleteNode,
     onEdgesChange,
     onConnect,
-    handleUndo,
-    handleRedo,
-    history,
-    future,
+    handleExport,
+    handleImport,
   };
 };
 

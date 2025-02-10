@@ -1,9 +1,20 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 
-const ConditionForm = ({ onSubmit, defaultValues, register, errors }) => {
+const ConditionForm = ({ onSubmit, defaultValues }) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      conditionType: defaultValues?.conditionType || "equals",
+      value: defaultValues?.value || "",
+    },
+  });
+
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <label className="block text-sm font-medium">Condition Type</label>
       <select
         {...register("conditionType", {

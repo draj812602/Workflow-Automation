@@ -1,9 +1,21 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 
-const TaskForm = ({ onSubmit, defaultValues, register, errors }) => {
+const TaskForm = ({ onSubmit, defaultValues }) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      taskName: defaultValues?.taskName || "", // ✅ Ensure default value exists
+      assignee: defaultValues?.assignee || "",
+      dueDate: defaultValues?.dueDate || "",
+    },
+  });
+
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <label className="block text-sm font-medium">Task Name</label>
       <input
         type="text"

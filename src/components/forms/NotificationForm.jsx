@@ -1,9 +1,19 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 
-const NotificationForm = ({ onSubmit, defaultValues, register, errors }) => {
+const NotificationForm = ({ onSubmit, defaultValues }) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      message: defaultValues?.message || "",
+    },
+  });
+
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <label className="block text-sm font-medium">Message</label>
       <textarea
         {...register("message", { required: "Message is required" })}

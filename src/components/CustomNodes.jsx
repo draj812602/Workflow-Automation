@@ -1,10 +1,9 @@
 import React from "react";
 import { Handle, Position } from "reactflow";
 
-// ✅ Reusable Handles Component (Separate Source & Target Handles)
-const Handles = ({ color }) => (
+// Memoized Handles Component
+const Handles = React.memo(({ color }) => (
   <>
-    {/* ✅ Source Handles (Output Connections) */}
     <Handle
       type="source"
       position={Position.Right}
@@ -15,8 +14,6 @@ const Handles = ({ color }) => (
       position={Position.Bottom}
       className={`w-3 h-3 bg-${color}-500 rounded-full`}
     />
-
-    {/* ✅ Target Handles (Input Connections) */}
     <Handle
       type="target"
       position={Position.Left}
@@ -28,33 +25,33 @@ const Handles = ({ color }) => (
       className={`w-3 h-3 bg-${color}-500 rounded-full`}
     />
   </>
-);
+));
 
-// ✅ Optimized TaskNode Component
-const TaskNode = ({ data }) => (
+// Memoized Task Node
+const TaskNode = React.memo(({ data }) => (
   <div className="p-4 border border-blue-500 bg-blue-100 rounded shadow relative">
     <strong>Task:</strong> {data.label}
-    <Handles color="blue" /> {/* ✅ Reuse Handles Component */}
+    <Handles color="blue" />
   </div>
-);
+));
 
-// ✅ Optimized ConditionNode Component
-const ConditionNode = ({ data }) => (
+// Memoized Condition Node
+const ConditionNode = React.memo(({ data }) => (
   <div className="p-4 border border-yellow-500 bg-yellow-100 rounded shadow relative">
     <strong>Condition:</strong> {data.label}
     <Handles color="yellow" />
   </div>
-);
+));
 
-// ✅ Optimized NotificationNode Component
-const NotificationNode = ({ data }) => (
+// Memoized Notification Node
+const NotificationNode = React.memo(({ data }) => (
   <div className="p-4 border border-green-500 bg-green-100 rounded shadow relative">
     <strong>Notification:</strong> {data.label}
     <Handles color="green" />
   </div>
-);
+));
 
-// ✅ Export custom node types
+// Export optimized node types
 const nodeTypes = {
   task: TaskNode,
   condition: ConditionNode,

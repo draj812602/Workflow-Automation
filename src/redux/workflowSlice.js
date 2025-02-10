@@ -53,25 +53,6 @@ const workflowSlice = createSlice({
       state.future = [];
       state.edges = state.edges.filter((edge) => edge.id !== action.payload);
     },
-    undo: (state) => {
-      if (state.history.length > 0) {
-        const lastState = state.history.pop();
-        state.future.push({ nodes: [...state.nodes], edges: [...state.edges] });
-        state.nodes = lastState.nodes;
-        state.edges = lastState.edges;
-      }
-    },
-    redo: (state) => {
-      if (state.future.length > 0) {
-        const nextState = state.future.pop();
-        state.history.push({
-          nodes: [...state.nodes],
-          edges: [...state.edges],
-        });
-        state.nodes = nextState.nodes;
-        state.edges = nextState.edges;
-      }
-    },
     exportWorkflow: (state) => {
       const json = JSON.stringify(
         { nodes: state.nodes, edges: state.edges },
@@ -98,14 +79,12 @@ const workflowSlice = createSlice({
 
 export const {
   addNode,
-  updateNode, // ✅ Ensure `updateNode` is exported
+  updateNode, // Ensure `updateNode` is exported
   updateNodes,
   deleteNode,
   setEdges,
   deleteEdge,
-  undo,
-  redo,
-  exportWorkflow, // ✅ Keep Export/Import functionality
+  exportWorkflow, //Keep Export/Import functionality
   importWorkflow,
 } = workflowSlice.actions;
 
